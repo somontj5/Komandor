@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Тёмный фон -->
+    <path
+        android:fillColor="#0D1117"
+        android:pathData="M4,4 L44,4 L44,44 L4,44 Z" />
+    <!-- Символ терминала: шеврон и курсор -->
+    <path
+        android:fillColor="#58A6FF"
+        android:pathData="M12,16 L20,24 L12,32 L12,27 L16,24 L12,21 Z" />
+    <path
+        android:fillColor="#7EE787"
+        android:pathData="M22,30 L36,30 L36,34 L22,34 Z" />
+</vector>
