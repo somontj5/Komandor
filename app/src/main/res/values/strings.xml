@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Командор</string>
+    <string name="accessibility_service_label">Командор — драйвер экрана</string>
+    <string name="accessibility_service_description">Позволяет приложению «Командор» читать элементы экрана и выполнять действия (клики, ввод текста), чтобы выполнять ваши задачи в других приложениях. Агент действует только по вашим командам и только в разрешённых приложениях.</string>
+</resources>
