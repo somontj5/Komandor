@@ -13,8 +13,8 @@ import androidx.core.app.NotificationCompat
 import com.komandor.app.MainActivity
 
 /**
- * AgentService (этап M1): foreground-сервис с постоянным уведомлением.
- * Держит цикл задач живым, когда пользователь сворачивает приложение.
+ * AgentService (M1-M4 Production): foreground-сервис с живым статусом текущей задачи Claude Code.
+ * Держит цикл задач живым, когда пользователь переключается в управляемое приложение (Claude, Gemini, браузер и т.д.).
  */
 class AgentService : Service() {
 
@@ -26,7 +26,18 @@ class AgentService : Service() {
         var isRunning: Boolean = false
             private set
 
+        @Volatile
+        var currentStatusText: String = "Агент активен и ждёт задач"
+            private set
+
         private var instance: AgentService? = null
+
+        fun updateStatus(statusText: String) {
+            currentStatusText = statusText
+            val svc = instance ?: return
+            val nm = svc.getSystemService(NotificationManager::class.java) ?: return
+            nm.notify(NOTIFICATION_ID, svc.buildNotification(statusText))
+        }
     }
 
     override fun onCreate() {
@@ -38,12 +49,16 @@ class AgentService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Здесь позже начнётся цикл обработки задач (Router -> ScreenDriver).
+        val customStatus = intent?.getStringExtra("status")
+        if (!customStatus.isNullOrBlank()) {
+            updateStatus(customStatus)
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
         isRunning = false
+        currentStatusText = "Агент остановлен"
         instance = null
         super.onDestroy()
     }
@@ -53,22 +68,23 @@ class AgentService : Service() {
     private fun createChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Агент Командор",
+            "Агент Командор (Claude Code Mobile)",
             NotificationManager.IMPORTANCE_LOW
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
-    private fun buildNotification(): Notification {
+    internal fun buildNotification(statusText: String = currentStatusText): Notification {
         val tapIntent = PendingIntent.getActivity(
-            this, 0,
+            this,
+            0,
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_manage)
-            .setContentTitle("Командор")
-            .setContentText("Агент активен и ждёт задач")
+            .setContentTitle("Командор • Claude Code")
+            .setContentText(statusText)
             .setContentIntent(tapIntent)
             .setOngoing(true)
             .build()
@@ -78,7 +94,8 @@ class AgentService : Service() {
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
-                NOTIFICATION_ID, notification,
+                NOTIFICATION_ID,
+                notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             )
         } else {

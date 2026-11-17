@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Командор • Claude Code Mobile v2.0 (Android Simulator & Kotlin Studio)</title>
+  <style>
+    :root {
+      --bg-root: #090d12;
+      --bg-panel: #0d1117;
+      --bg-card: #161b22;
+      --bg-elevated: #1f242c;
+      --border: #30363d;
+      --accent: #d97757;
+      --blue: #58a6ff;
+      --green: #7ee787;
+      --yellow: #e3b341;
+      --red: #ff7b72;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at top left, #18141c 0%, var(--bg-root) 55%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(22, 27, 34, 0.92);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--mono);
+    }
+    .brand-logo {
+      background: rgba(217, 119, 87, 0.16);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+    }
+    .badge.ok { color: var(--green); border-color: #238636; }
+    .badge.accent { color: var(--accent); border-color: var(--accent); }
+    .badge.blue { color: var(--blue); border-color: #1f6feb; }
+
+    .workspace-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 20px;
+      padding: 20px 24px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (max-width: 1080px) {
+      .workspace-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Рамка Android-смартфона */
+    .phone-frame {
+      background: #05070a;
+      border: 3px solid #2b313a;
+      border-radius: 34px;
+      padding: 12px;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      height: 820px;
+    }
+    .phone-notch {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .phone-screen {
+      flex: 1;
+      background: var(--bg-panel);
+      border-radius: 22px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+    }
+    .app-topbar {
+      background: var(--bg-card);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+    }
+    .app-title {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .app-subtitle {
+      font-size: 10px;
+      color: var(--green);
+      margin-top: 2px;
+    }
+    .btn-fgs {
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-fgs.stop { background: #da3633; }
+
+    .phone-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+    .phone-tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 9px 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .phone-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .quick-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 7px 8px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .chip {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chip:hover { border-color: var(--accent); color: #fff; }
+
+    .tab-pane {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tab-pane.active { display: flex; }
+
+    .events-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ev-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.45;
+    }
+    .ev-card.USER { border-color: #238636; }
+    .ev-card.THINKING { border-color: #9e6a03; }
+    .ev-card.TOOL_RESULT { border-color: #1f6feb; }
+    .ev-card.ASSISTANT { border-color: var(--accent); }
+    .ev-card.ERROR { border-color: #da3633; }
+    .ev-head {
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .ev-card.USER .ev-head { color: var(--green); }
+    .ev-card.THINKING .ev-head { color: var(--yellow); }
+    .ev-card.TOOL_RESULT .ev-head { color: var(--blue); }
+    .ev-card.ASSISTANT .ev-head { color: var(--accent); }
+    .ev-card.ERROR .ev-head { color: var(--red); }
+    .ev-body {
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+    }
+    .diff-box {
+      margin-top: 6px;
+      background: #090d12;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 10.5px;
+      overflow-x: auto;
+    }
+    .diff-add { color: var(--green); }
+    .diff-del { color: var(--red); }
+
+    .prompt-bar {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .prompt-bar span {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+    .prompt-input {
+      flex: 1;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 7px 9px;
+    }
+    .prompt-send {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Правая панель — Инженерный центр и исходники Android APK */
+    .studio-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .studio-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .studio-card h2 {
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tools-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+    }
+    .tool-tile {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .tool-tile:hover { border-color: var(--accent); }
+    .tool-tile strong { color: var(--blue); font-size: 12.5px; display: block; margin-bottom: 4px; }
+    .tool-tile p { color: var(--muted); font-size: 11px; line-height: 1.35; }
+
+    .kt-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .kt-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .kt-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .code-viewer {
+      background: #090d12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      color: #e6edf3;
+      max-height: 430px;
+      overflow: auto;
+      white-space: pre;
+    }
+    .node-item {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+    .node-item:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">✻ КОМАНДОР v2.0</div>
+      <div>
+        <div style="font-weight:700;font-size:15px;">Claude Code для телефона (Android APK + ReAct Engine)</div>
+        <div style="font-size:11px;color:var(--muted);">Полноценный агент: локальный воркспейс + терминал Bash + ScreenDriver Accessibility + Blocklist Guardrails</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge ok">● APK: Kotlin 1.9.22 + Jetpack Compose</span>
+      <span class="badge accent">● 10 Инструментов Claude Code</span>
+      <span class="badge blue">🛡️ WhatsApp Blocklist + Анти-Капча</span>
+    </div>
+  </header>
+
+  <main class="workspace-grid">
+    <!-- Левая колонка: интерактивный симулятор телефона с приложением Командор -->
+    <section class="phone-frame">
+      <div class="phone-notch">
+        <span>20:26 • Android 14</span>
+        <span>5G • 100% 🔋</span>
+      </div>
+      <div class="phone-screen">
+        <div class="app-topbar">
+          <div>
+            <div class="app-title">✻ КОМАНДОР • CLAUDE CODE</div>
+            <div class="app-subtitle" id="fgsStatusText">FGS: АКТИВЕН • ЭКРАН: ПОДКЛЮЧЕН</div>
+          </div>
+          <button class="btn-fgs stop" id="fgsToggleBtn" onclick="toggleFgs()">Стоп</button>
+        </div>
+
+        <div class="phone-tabs">
+          <button class="phone-tab active" onclick="switchPhoneTab('terminal', this)">Терминал</button>
+          <button class="phone-tab" onclick="switchPhoneTab('files', this)">Файлы</button>
+          <button class="phone-tab" onclick="switchPhoneTab('screen', this)">Экран UI</button>
+          <button class="phone-tab" onclick="switchPhoneTab('settings', this)">Настройки</button>
+        </div>
+
+        <!-- Вкладка 1: Терминал Claude Code -->
+        <div class="tab-pane active" id="pane-terminal">
+          <div class="quick-chips">
+            <button class="chip" onclick="sendPrompt('/status')">/status</button>
+            <button class="chip" onclick="sendPrompt('/ls')">/ls</button>
+            <button class="chip" onclick="sendPrompt('/read CLAUDE.md')">/read CLAUDE.md</button>
+            <button class="chip" onclick="sendPrompt('создай файл solver.py')">создай solver.py</button>
+            <button class="chip" onclick="sendPrompt('/screen')">/screen</button>
+            <button class="chip" onclick="sendPrompt('тест')">тест (M1)</button>
+            <button class="chip" onclick="sendPrompt('/open whatsapp')">тест WhatsApp блока</button>
+          </div>
+          <div class="events-feed" id="eventsFeed"></div>
+          <form class="prompt-bar" onsubmit="handleFormSubmit(event)">
+            <span>❯</span>
+            <input type="text" id="promptInput" class="prompt-input" placeholder="Задача или /команда (/help, /ls, тест)..." />
+            <button type="submit" class="prompt-send">➤</button>
+          </form>
+        </div>
+
+        <!-- Вкладка 2: Проводник и редактор воркспейса -->
+        <div class="tab-pane" id="pane-files" style="padding:10px;gap:8px;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Локальный воркспейс телефона (/files/workspace):</div>
+          <div id="wsFilesBar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;"></div>
+          <textarea id="wsEditor" style="flex:1;background:#090d12;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:var(--mono);font-size:11.5px;"></textarea>
+          <div style="display:flex;gap:6px;">
+            <button class="prompt-send" style="flex:1;background:#238636;" onclick="saveWorkspaceFile()">Сохранить (Write + Diff)</button>
+            <button class="prompt-send" style="flex:1;background:#1f6feb;" onclick="runCurrentFileInBash()">Запустить в Bash</button>
+          </div>
+        </div>
+
+        <!-- Вкладка 3: Инспектор экрана ScreenDriver -->
+        <div class="tab-pane" id="pane-screen" style="padding:10px;gap:8px;overflow-y:auto;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="chip" onclick="triggerScreenAction('click_index', {index:1})">Тест-клик [1]</button>
+            <button class="chip" onclick="triggerScreenAction('scroll', {direction:'down'})">Скролл ↓</button>
+            <button class="chip" onclick="triggerScreenAction('scroll', {direction:'up'})">Скролл ↑</button>
+            <button class="chip" onclick="triggerScreenAction('back', {})">Назад</button>
+            <button class="chip" onclick="triggerScreenAction('home', {})">Домой</button>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input id="screenTypeInput" class="prompt-input" placeholder="Текст для ввода в EditText [3]..." />
+            <button class="prompt-send" onclick="typeIntoScreen()">Ввести</button>
+          </div>
+          <div id="screenActionStatus" style="font-family:var(--mono);font-size:11px;color:var(--green);">Нажмите на любой узел экрана ниже для выполнения клика:</div>
+          <div id="screenNodesList" style="flex:1;overflow-y:auto;"></div>
+        </div>
+
+        <!-- Вкладка 4: Настройки LLM и безопасности -->
+        <div class="tab-pane" id="pane-settings" style="padding:12px;gap:10px;font-family:var(--mono);font-size:11.5px;overflow-y:auto;">
+          <div style="color:var(--accent);font-weight:700;">Конфигурация ИИ-провайдера (ClaudeCodeEngine.kt)</div>
+          <label>Провайдер API:</label>
+          <select class="prompt-input">
+            <option>Авто (Anthropic Claude / OpenAI / Локальный ReAct)</option>
+            <option>Anthropic Claude API (claude-sonnet-4-5)</option>
+            <option>OpenAI / DeepSeek / OpenRouter Compatible</option>
+          </select>
+          <label>Модель по умолчанию:</label>
+          <input class="prompt-input" value="claude-sonnet-4-5" />
+          <label>Макс. итераций ReAct-цикла за запрос:</label>
+          <input class="prompt-input" value="6" />
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:6px;">
+            <div style="color:var(--blue);font-weight:700;margin-bottom:4px;">🛡️ Неотключаемая защита (Blocklist.kt):</div>
+            <div>• Запрет пакетов: com.whatsapp, com.whatsapp.w4b</div>
+            <div>• Авто-стоп на капчах (Cloudflare, reCAPTCHA) и экранах ввода СМС/CVV</div>
+            <div>• Санитизация опасных shell-вызовов в локальной песочнице</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Правая колонка: Интерактивная матрица инструментов и просмотр исходного кода Android APK -->
+    <section class="studio-panel">
+      <div class="studio-card">
+        <h2>
+          <span>⚡ Арсенал инструментов Командора (нажмите для живого запуска в симуляторе)</span>
+          <span style="font-size:11px;color:var(--muted);">ClaudeCodeToolset.kt</span>
+        </h2>
+        <div class="tools-matrix">
+          <div class="tool-tile" onclick="sendPrompt('/bash python3 src/agent_demo.py')">
+            <strong>1. Bash (Shell Runner)</strong>
+            <p>Выполнение команд и скриптов внутри локальной песочницы телефона с защитным фильтром.</p>
+          </div>
+          <div class="tool-tile" onclick="sendPrompt('/read CLAUDE.md')">
+            <strong>2. Read (File Reader)</strong>
+            <p>Чтение файлов проекта с нумерацией строк (`cat -n`) и поддержкой смещений.</p>
+          </div>
+          <div class="tool-tile" onclick="sendPrompt('создай файл auto_agent.py')">
+            <strong>3. Write & Edit (+ Diff)</strong>
+            <p>Генерация и патч файлов с автоматическим расчётом цветового unified diff.</p>
+          </div>
+          <div class="tool-tile" onclick="sendPrompt('/ls')">
+            <strong>4. Glob & Grep</strong>
+            <p>Мгновенный поиск файлов по маске и регулярным выражениям по всему проекту.</p>
+          </div>
+          <div class="tool-tile" onclick="sendPrompt('/screen')">
+            <strong>5. ScreenInspect & Action</strong>
+            <p>Сериализация дерева AccessibilityService с координатами, кликами, вводом и скроллом.</p>
+          </div>
+          <div class="tool-tile" onclick="sendPrompt('/open whatsapp')">
+            <strong>6. Blocklist & Guardrails</strong>
+            <p>Жёсткая блокировка WhatsApp, детектор капч и защита платёжных экранов / 2FA.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-card" style="flex:1;">
+        <h2>
+          <span>📦 Исходный код Android-приложения (Kotlin + Jetpack Compose)</span>
+          <span id="ktStats" style="font-size:11px;color:var(--green);">Готов к сборке APK через GitHub Actions</span>
+        </h2>
+        <div class="kt-tabs" id="ktTabs"></div>
+        <div class="code-viewer" id="ktCodeViewer">Загрузка исходных файлов Kotlin...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let appState = { workspace: [], kotlinSources: [], screen: { nodes: [] } };
+    let selectedWsFile = "CLAUDE.md";
+    let fgsActive = true;
+
+    async function loadState() {
+      const res = await fetch("/api/state");
+      appState = await res.json();
+      renderWorkspaceFiles();
+      renderScreenInspector();
+      renderKotlinTabs(0);
+    }
+
+    function addEventCard(ev) {
+      const feed = document.getElementById("eventsFeed");
+      const card = document.createElement("div");
+      card.className = "ev-card " + (ev.kind || "SYSTEM");
+      let diffHtml = "";
+      if (ev.diff) {
+        const colored = ev.diff.split("\n").map(line => {
+          const esc = line.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+          if (line.startsWith("+") && !line.startsWith("+++")) return `<div class="diff-add">${esc}</div>`;
+          if (line.startsWith("-") && !line.startsWith("---")) return `<div class="diff-del">${esc}</div>`;
+          return `<div>${esc}</div>`;
+        }).join("");
+        diffHtml = `<div class="diff-box">${colored}</div>`;
+      }
+      card.innerHTML = `
+        <div class="ev-head">
+          <span>${ev.kind} • ${ev.title}</span>
+          <span>только что</span>
+        </div>
+        <div class="ev-body">${(ev.body || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>
+        ${diffHtml}
+      `;
+      feed.appendChild(card);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    async function sendPrompt(promptText) {
+      switchPhoneTab("terminal", document.querySelectorAll(".phone-tab")[0]);
+      addEventCard({ kind: "USER", title: "Вы", body: promptText });
+      const res = await fetch("/api/prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: promptText })
+      });
+      const data = await res.json();
+      for (const step of (data.steps || [])) {
+        addEventCard(step);
+      }
+      await loadState();
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const inp = document.getElementById("promptInput");
+      const val = inp.value.trim();
+      if (!val) return;
+      inp.value = "";
+      sendPrompt(val);
+    }
+
+    function switchPhoneTab(tabId, btnEl) {
+      document.querySelectorAll(".phone-tab").forEach(b => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+      document.getElementById("pane-" + tabId).classList.add("active");
+    }
+
+    function toggleFgs() {
+      fgsActive = !fgsActive;
+      const btn = document.getElementById("fgsToggleBtn");
+      const txt = document.getElementById("fgsStatusText");
+      if (fgsActive) {
+        btn.textContent = "Стоп";
+        btn.classList.add("stop");
+        txt.textContent = "FGS: АКТИВЕН • ЭКРАН: ПОДКЛЮЧЕН";
+        addEventCard({ kind: "SYSTEM", title: "AgentService", body: "Фоновый сервис Командора запущен." });
+      } else {
+        btn.textContent = "Старт";
+        btn.classList.remove("stop");
+        txt.textContent = "FGS: ОСТАНОВЛЕН • ЭКРАН: ПОДКЛЮЧЕН";
+        addEventCard({ kind: "SYSTEM", title: "AgentService", body: "Фоновый сервис остановлен." });
+      }
+    }
+
+    function renderWorkspaceFiles() {
+      const bar = document.getElementById("wsFilesBar");
+      bar.innerHTML = "";
+      (appState.workspace || []).forEach(f => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        if (f.path === selectedWsFile) {
+          b.style.background = "var(--accent)";
+          b.style.color = "#fff";
+        }
+        b.textContent = f.path;
+        b.onclick = () => {
+          selectedWsFile = f.path;
+          document.getElementById("wsEditor").value = f.content;
+          renderWorkspaceFiles();
+        };
+        bar.appendChild(b);
+      });
+      const current = (appState.workspace || []).find(x => x.path === selectedWsFile) || (appState.workspace || [])[0];
+      if (current) {
+        selectedWsFile = current.path;
+        document.getElementById("wsEditor").value = current.content;
+      }
+    }
+
+    async function saveWorkspaceFile() {
+      const content = document.getElementById("wsEditor").value;
+      const res = await fetch("/api/tool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool: "Write", args: { file_path: selectedWsFile, content } })
+      });
+      const data = await res.json();
+      addEventCard({
+        kind: "TOOL_RESULT",
+        title: `Write(${selectedWsFile})`,
+        body: data.result.output,
+        diff: data.result.diff
+      });
+      await loadState();
+      switchPhoneTab("terminal", document.querySelectorAll(".phone-tab")[0]);
+    }
+
+    function runCurrentFileInBash() {
+      const cmd = selectedWsFile.endsWith(".py")
+        ? `python3 ${selectedWsFile}`
+        : (selectedWsFile.endsWith(".sh") ? `sh ${selectedWsFile}` : `cat ${selectedWsFile}`);
+      sendPrompt(`/bash ${cmd}`);
+    }
+
+    function renderScreenInspector() {
+      const list = document.getElementById("screenNodesList");
+      list.innerHTML = "";
+      const nodes = (appState.screen && appState.screen.nodes) || [];
+      nodes.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "node-item";
+        div.innerHTML = `<strong style="color:var(--accent)">[${n.index}] ${n.class}</strong> #${n.id}<br/>` +
+          `<span>${n.text || n.desc || "&lt;без текста&gt;"}</span> • <span style="color:var(--muted)">@(${n.x}, ${n.y})</span>`;
+        div.onclick = () => triggerScreenAction("click_index", { index: n.index });
+        list.appendChild(div);
+      });
+    }
+
+    async function triggerScreenAction(action, extraArgs) {
+      const res = await fetch("/api/tool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool: "ScreenAction", args: Object.assign({ action }, extraArgs) })
+      });
+      const data = await res.json();
+      document.getElementById("screenActionStatus").textContent = data.result.output;
+      addEventCard({ kind: "TOOL_RESULT", title: data.result.tool, body: data.result.output });
+      await loadState();
+    }
+
+    function typeIntoScreen() {
+      const val = document.getElementById("screenTypeInput").value.trim();
+      if (!val) return;
+      triggerScreenAction("type", { text: val });
+    }
+
+    function renderKotlinTabs(activeIndex) {
+      const tabs = document.getElementById("ktTabs");
+      const viewer = document.getElementById("ktCodeViewer");
+      tabs.innerHTML = "";
+      const sources = appState.kotlinSources || [];
+      sources.forEach((src, idx) => {
+        const b = document.createElement("button");
+        b.className = "kt-btn" + (idx === activeIndex ? " active" : "");
+        b.textContent = `${src.name} (${src.lines} стр.)`;
+        b.onclick = () => renderKotlinTabs(idx);
+        tabs.appendChild(b);
+      });
+      if (sources[activeIndex]) {
+        viewer.textContent = `// Путь: ${sources[activeIndex].path}\n` + sources[activeIndex].content;
+      }
+    }
+
+    addEventCard({
+      kind: "SYSTEM",
+      title: "✻ Командор • Claude Code Mobile v2.0",
+      body: "Симулятор и рабочее окружение готовы.\n• Нажмите на любой быстрый чип выше (`/status`, `/ls`, `создай solver.py`, `тест`) или введите свою задачу.\n• Справа доступны исходники всех 6 модулей Kotlin для Android APK."
+    });
+    loadState();
+  </script>
+</body>
+</html>
